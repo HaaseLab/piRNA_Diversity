@@ -1,7 +1,6 @@
-# piRNA_Diversity
-Scripts related to manuscript discussing evaluation of piRNA diversity.
+[View Haase Lab HERE](https://www.niddk.nih.gov/research-funding/at-niddk/labs-branches/laboratory-cell-molecular-biology/rna-biology-section)
+# HaaseLab: piRNA Diversity
 
-... uploads in progress
+<img src="https://user-images.githubusercontent.com/11409899/109845179-d802fb00-7c1a-11eb-8e45-43b0dbf50de6.png" width="600">
 
-
-... to see progress go to: https://github.com/genzorp/HaaseLab-piRNA-Diversity
+Scripts and code to support the piRNA Diversity manuscript published by Haase Lab. 
