@@ -9,7 +9,8 @@ output:
 *Amirhossein Manzourolajdad, Celine Marlin Andrews, Alexandra R. Elchert, Constantinos Stathopoulos, Astrid D. Haase*  
   
   
-This vignette describes the computational materials & methods associated with this manuscript. Please visit [**HaaseLab/piRNA_Diversity github repository**](https://github.com/HaaseLab/piRNA_Diversity) to download functions for the script. Please reffer to the GEO dataset [**GSE156058**](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE156058) associated with this study for adapter sequences and raw data. 
+This vignette describes the computational materials & methods associated with this manuscript. Please visit [**HaaseLab/piRNA_Diversity github repository**](https://github.com/HaaseLab/piRNA_Diversity) to download functions used in the various scripts and analyses. Please refer to the GEO data set [**GSE156058**](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE156058) associated with this study for adapter sequences and raw data. 
+The analysis in this vignette was not performed with full data sets, but only subset of the data to demonstrate the materials and methods. 
 
 ####
 __About small RNA Libraries.__  
@@ -24,6 +25,7 @@ __Pre-requisites__
 * Ensure that you have the appropriate 5-prime and 3-prime adapter sequences
 * Ensure you have access to computing cluster and a computer with R environment
 * Ensure that you have all the necessary software installed and running
+* NOTE: some images may not have rendered perfectly
 
 ####
 __Vignette Content__  
@@ -35,8 +37,16 @@ A. DATA PREPARATION
   3. Remove structural contaminants and align to the genome
   4. Load and process files in R.  
 
-B. FIGURE-RELATED SCRIPTS
+B. FIGURE-RELATED SCRIPTS  
 
+  * Figure 1
+  * Figure 2
+  * Figure S2 & 3B
+  * Figure 3 & 4
+  * Additinoal figures
+  
+C. *__bash__* Scripts  
+D. Functions 
 
 ##  
 __DATA PREPARATION__  
@@ -196,9 +206,9 @@ Once the replicate ***bam** files are generated in the previous chunks, we load 
 source(paste0(FUN.DIR,"filterBam.R"))
 
 ## named vector of paths
-BAM.PATH.L <- c("rep1"="/Users/genzorp/Documents/GITHUB/piDiversity/data/bamFiles/FHIP/STAR/FH-Piwi-IP_1_1.Aligned.sortedByCoord.out.bam",
-                "rep2"="/Users/genzorp/Documents/GITHUB/piDiversity/data/bamFiles/FHIP/STAR/FH-Piwi-IP_1_2.Aligned.sortedByCoord.out.bam",
-                "rep3"="/Users/genzorp/Documents/GITHUB/piDiversity/data/bamFiles/FHIP/STAR/FH-Piwi-IP_1_3.Aligned.sortedByCoord.out.bam")
+BAM.PATH.L <- c("rep1"="/YourSTARoutputFolder/FH-Piwi-IP_1_1.Aligned.sortedByCoord.out.bam",
+                "rep2"="/YourSTARoutputFolder/FH-Piwi-IP_1_2.Aligned.sortedByCoord.out.bam",
+                "rep3"="/YourSTARoutputFolder/FH-Piwi-IP_1_3.Aligned.sortedByCoord.out.bam")
 
 ## load multiple files using lapply loop 
 BAM.L <- lapply(names(BAM.PATH.L), function(s){
@@ -261,8 +271,7 @@ save.image(file = "/Users/genzorp/Documents/GITHUB/piDiversity/sessions/revision
 # NOTE: COMBINE REPLICATES
 
 # load data
-#load(file = "/Users/genzorp/Documents/GITHUB/piDiversity/sessions/revisions/three_filtered_bams_all.RData")
-load(file = "/Users/genzorp/Documents/GITHUB/piDiversity/sessions/revisions/three_filtered_bams_500K.RData")
+load(file = "/Users/genzorp/Documents/GITHUB/LIVE/piRNA_Diversity/exampleRData/three_filtered_bams_500K.RData")
 
 # Load the function
 source(paste0(FUN.DIR,"combineThreeGRS.R"))
@@ -278,9 +287,6 @@ BIO.REP
 
 # all unique sequences
 summary(duplicated(BIO.REP))
-
-# save ALL
-#save.image(file = "/Users/genzorp/Documents/GITHUB/piDiversity/sessions/revisions/three_filtered_bams_all_brep.RData")
 ```
 
 * While combining replicate data sets we:
@@ -302,9 +308,6 @@ BIOREP.OV.L <- suppressMessages(
 
 ## show list content 
 names(BIOREP.OV.L)
-
-## save ALL
-#save.image(file = "/Users/genzorp/Documents/GITHUB/piDiversity/sessions/revisions/three_filtered_bams_all_brep_ov.RData")
 ```
 
 * The objects generated during sequence overlap process are lists:  
@@ -315,7 +318,7 @@ names(BIOREP.OV.L)
 
 ```{r combining overlapped sequences, eval=TRUE, cache=TRUE}
 # NOTE: COMBINTE TO GET TOTAL, COMMON, AND RARE
-# BEWARE: combining large data sets can be computationally very expnesive
+# BEWARE: combining large data sets can be computationally very expensive
 
 # TOTAL
 TOTAL.GR <- suppressMessages(
@@ -342,9 +345,6 @@ COMMON.GR <- suppressMessages(
 
 # ensure each is found in all samples
 #unique(mcols(COMMON.GR)[["N"]])
-
-# save ALL
-#save.image(file = "/Users/genzorp/Documents/GITHUB/piDiversity/sessions/revisions/three_filtered_bams_all_brep_ov_comb.RData")
 ```
 
 * After performing all the above operation, it is convenient to identify object that are intended for analysis, and save them into a *RData object for faster loading. Otherwise, depending on the size of the samples, the data preparation will take long time.
@@ -408,10 +408,202 @@ ggplot() + theme_pubclean() +
 ```{r Figure 1B, eval=FALSE, fig.align="center", cache=TRUE}
 # NOTE: Figure 1B
 
-# in progress
+# Accumulation Curve#
+# If you want to use the rational function approximation that asymptotically approaches 
+# a linear curve, you have to download the old version 1.2.1 at 
+# https://cran.r-project.org/src/contrib/Archive/preseqR/ and use the old function 
+# preseqR.rfa.species.accum.curve (set the option asym.linear=1 inside the function).
+# before proceeding:
+# install.packages('preseqR') after locally downloading the above version.
+# install.packages("local destination",repos=NULL,type="source")
+
+# libraries
+library('stringr');library('gplots');library('ggplot2')
+library('data.table');library('plyr');library('dplyr')
+library('RColorBrewer');library('dendextend');library('cluster')
+library('reshape2');library('rdist');library('rdist')
+library('factoextra');library('treeClust');library('clv')
+library('preseqR');library('scales')
+
+# ELBOW POINT:
+# Function to calculate the elbow point. Point with maximum curvature is defined as 
+# elbow point of saturation.This function elbow takes input arrays (x and y). 
+# It will find the point with maximum curvature at index‘ind’ and returns values x(ind) and y(ind).
+
+elbow <-function(inputx,inputy,scalex,scaley){
+  ninputx=inputx/(scalex)
+  ninputy=inputy/(scaley)
+  ninputx=smooth(ninputx);ninputy=smooth(ninputy)
+  curvature=rep(0,length(inputy))
+  ypvector=rep(0,length(inputy))
+  for (i in 2:(length(inputy)-1)){
+    yp=(ninputy[i+1]-ninputy[i-1])/(ninputx[i+1]-ninputx[i-1])
+    ypp=(ninputy[i+1]-2*ninputy[i]+ninputy[i-1])/(((ninputx[i+1]-ninputx[i-1])/2)^2)
+    curvature[i]= abs(ypp)/((1+(yp^2))^(3/2))
+    ypvector[i]=yp }
+  curvature[1]=curvature[2]
+  ypvector[1]=ypvector[2]
+  curvature[i+1]=curvature[i]
+  ypvector[i+1]=ypvector[i]
+  curvature=smooth(curvature)
+  inputx=smooth(inputx);inputy=smooth(inputy)
+  dx=(inputx[which.max(curvature)+1]-inputx[which.max(curvature)-1])/2
+  dy=(inputy[which.max(curvature)+1]-inputy[which.max(curvature)-1])/2
+  ret=c(inputx[which.max(curvature)],inputy[which.max(curvature)],dx,dy)
+  return(ret) }
+
+#======= load data ================
+Exp1path="data/03162020/MILI_PS_1_Multiplicity.csv"
+Exp2path="data/03162020/MILI_PS_2_Multiplicity.csv"
+Exp3path="data/03162020/MIWI_PS_1_Multiplicity.csv"
+Exp4path="data/03162020/MIWI_PS_2_Multiplicity.csv"
+Exp5path="data/03122020/FH-Piwi-IP_1_Multiplicity.csv"
+Exp6path="data/03122020/FH-Piwi-IP_2_Multiplicity.csv"
+Exp7path="data/03122020/FH-Piwi-IP_3_Multiplicity.csv"
+
+Exp1=read.csv(Exp1path,sep=",")
+Exp2=read.csv(Exp2path,sep=",")
+Exp3=read.csv(Exp3path,sep=",")
+Exp4=read.csv(Exp4path,sep=",")
+Exp5=read.csv(Exp5path,sep=",")
+Exp6=read.csv(Exp6path,sep=",")
+Exp7=read.csv(Exp7path,sep=",")
+
+exp1=data.matrix(Exp1,rownames.force = NA)
+exp2=data.matrix(Exp2,rownames.force = NA)
+exp3=data.matrix(Exp3,rownames.force = NA)
+exp4=data.matrix(Exp4,rownames.force = NA)
+exp5=data.matrix(Exp5,rownames.force = NA)
+exp6=data.matrix(Exp6,rownames.force = NA)
+exp7=data.matrix(Exp7,rownames.force = NA)
+
+#==================================
+#Real Data:
+total=c(sum(exp1[,1]*exp1[,2]),sum(exp2[,1]*exp2[,2]),
+        sum(exp3[,1]*exp3[,2]),sum(exp4[,1]*exp4[,2]),
+        sum(exp5[,1]*exp5[,2]),sum(exp6[,1]*exp6[,2]),
+        sum(exp7[,1]*exp7[,2]))
+
+unique=c(sum(exp1[,2]),sum(exp2[,2]),
+         sum(exp3[,2]),sum(exp4[,2]),
+         sum(exp5[,2]),sum(exp6[,2]),
+         sum(exp7[,2]))
+
+maxtotal = max(total)
+
+#Estimation:
+estimatorExp1 <- preseqR.rSAC.bootstrap(exp1, r=1)
+estimatorExp2 <- preseqR.rSAC.bootstrap(exp2, r=1)
+estimatorExp3 <- preseqR.rSAC.bootstrap(exp3, r=1)
+estimatorExp4 <- preseqR.rSAC.bootstrap(exp4, r=1)
+estimatorExp5 <- preseqR.rSAC.bootstrap(exp5, r=1)
+estimatorExp6 <- preseqR.rSAC.bootstrap(exp6, r=1)
+estimatorExp7 <- preseqR.rSAC.bootstrap(exp7, r=1)
+
+#==================================
+predict=20
+predict1=predict/(total[1]/maxtotal)
+predict2=predict/(total[2]/maxtotal)
+predict3=predict/(total[3]/maxtotal)
+predict4=predict/(total[4]/maxtotal)
+predict5=predict/(total[5]/maxtotal)
+predict6=predict/(total[6]/maxtotal)
+predict7=predict/(total[7]/maxtotal)
+t1=c(seq(0,0.99,by=0.01),seq(1,predict1,by=0.01))
+t2=c(seq(0,0.99,by=0.01),seq(1,predict2,by=0.01))
+t3=c(seq(0,0.99,by=0.01),seq(1,predict3,by=0.01))
+t4=c(seq(0,0.99,by=0.01),seq(1,predict4,by=0.01))
+t5=c(seq(0,0.99,by=0.01),seq(1,predict5,by=0.01))
+t6=c(seq(0,0.99,by=0.01),seq(1,predict6,by=0.01))
+t7=c(seq(0,0.99,by=0.01),seq(1,predict7,by=0.01))
+uniqueExp1=estimatorExp1$f(t1)
+uniqueExp2=estimatorExp2$f(t2)
+uniqueExp3=estimatorExp3$f(t3)
+uniqueExp4=estimatorExp4$f(t4)
+uniqueExp5=estimatorExp5$f(t5)
+uniqueExp6=estimatorExp6$f(t6)
+uniqueExp7=estimatorExp7$f(t7)
+
+xExp1=total[1]*t1
+xExp2=total[2]*t2
+xExp3=total[3]*t3
+xExp4=total[4]*t4
+xExp5=total[5]*t5
+xExp6=total[6]*t6
+xExp7=total[7]*t7
+
+setnames <-c(Exp1path,Exp2path,Exp3path,Exp4path,Exp5path,Exp6path,Exp7path)
+csvfilenames <- substring(setnames, regexpr("\\/[^\\/]*$", setnames) +1 )
+multnames <- as.character(c(str_remove(csvfilenames, ".csv"),"real"))
+
+x.lim = min(max(xExp1),max(xExp2),max(xExp3),max(xExp4),max(xExp5),max(xExp6),max(xExp7))
+y.lim = max(uniqueExp1,uniqueExp2,uniqueExp3,uniqueExp4,uniqueExp5,uniqueExp6,uniqueExp7)
+xcut=x.lim*1.05
+xExp1max=length(xExp1[which(xExp1 <= xcut)])
+xExp2max=length(xExp2[which(xExp2 <= xcut)])
+xExp3max=length(xExp3[which(xExp3 <= xcut)])
+xExp4max=length(xExp4[which(xExp4 <= xcut)])
+xExp5max=length(xExp5[which(xExp5 <= xcut)])
+xExp6max=length(xExp6[which(xExp6 <= xcut)])
+xExp7max=length(xExp7[which(xExp7 <= xcut)])
+
+df1 <- data.frame("abundance" = xExp1[1:xExp1max], "unique" = uniqueExp1[1:xExp1max], 
+                  set = multnames[1], stringsAsFactors = FALSE)
+df12 <- data.frame("abundance" = xExp2[1:xExp2max], "unique" = uniqueExp2[1:xExp2max], 
+                   set = multnames[2], stringsAsFactors = FALSE)
+df123 <- data.frame("abundance" = xExp3[1:xExp3max], "unique" = uniqueExp3[1:xExp3max], 
+                    set = multnames[3], stringsAsFactors = FALSE)
+df1234 <- data.frame("abundance" = xExp4[1:xExp4max], "unique" = uniqueExp4[1:xExp4max], 
+                     set = multnames[4], stringsAsFactors = FALSE)
+df12345 <- data.frame("abundance" = xExp5[1:xExp5max], "unique" = uniqueExp5[1:xExp5max], 
+                      set = multnames[5], stringsAsFactors = FALSE)
+df123456 <- data.frame("abundance" = xExp6[1:xExp6max], "unique" = uniqueExp6[1:xExp6max], 
+                       set = multnames[6], stringsAsFactors = FALSE)
+df1234567 <- data.frame("abundance" = xExp7[1:xExp7max], "unique" = uniqueExp7[1:xExp7max], 
+                        set = multnames[7], stringsAsFactors = FALSE)
+
+# real data
+dfreal <- data.frame("abundance" = total, "unique" = unique, set = "real")
+
+# combine tables
+df <- setDT(rbind(df1,df12,df123,df1234,df12345,df123456,df1234567,dfreal))
+df[["set"]] <- as.character(df[["set"]])
+legendTitle = "set"
+df[["set"]] <- factor(df[["set"]], levels = multnames)
+plot_colors <- c("dark green","light green","dark blue","light blue",
+                 "purple","red","pink","black")
+
+# Plot
+ggplot(df, aes(x = abundance, y = unique, colour = set)) +
+  scale_color_manual(values = plot_colors, name = paste(legendTitle,sep = ""),
+                     labels = paste(multnames, sep = "")) +
+  geom_vline(aes(xintercept=df[set=="real",]$abundance[1]),colour=plot_colors[1],
+             linetype="dashed",size = 0.3) +
+  geom_vline(aes(xintercept=df[set=="real",]$abundance[2]),colour=plot_colors[2],
+             linetype="dashed",size = 0.3) +
+  geom_vline(aes(xintercept=df[set=="real",]$abundance[3]),colour=plot_colors[3],
+             linetype="dashed",size = 0.3) +
+  geom_vline(aes(xintercept=df[set=="real",]$abundance[4]),colour=plot_colors[4],
+             linetype="dashed",size = 0.3) +
+  geom_vline(aes(xintercept=df[set=="real",]$abundance[5]),colour=plot_colors[5],
+             linetype="dashed",size = 0.3) +
+  geom_vline(aes(xintercept=df[set=="real",]$abundance[6]),colour=plot_colors[6],
+             linetype="dashed",size = 0.3) +
+  geom_vline(aes(xintercept=df[set=="real",]$abundance[7]),colour=plot_colors[7],
+             linetype="dashed",size = 0.3) +
+  geom_point(data = subset(df, set == "real"), colour = plot_colors[8]) + 
+  geom_line(data = subset(df, set != "real")) + 
+  scale_x_continuous(limits = c(0,4e8), breaks = seq(0,4e8,5e7)) +
+  scale_y_continuous(limits = c(0,13e6), breaks = seq(0,13e6,1e6)) +
+  ggtitle(outputpath) +
+  theme_bw() + 
+  theme(plot.title = element_text(size = 8),
+        panel.grid = element_blank(), 
+        aspect.ratio = 1,
+        legend.position = "bottom")
 ```
 
-```{r Figure 1C, eval=TRUE, fig.align="center", cache=TRUE,}
+```{r Figure 1C, eval=TRUE, fig.align="center", cache=TRUE}
 # NOTE: Figure 1C
 
 # load quantification data
@@ -424,7 +616,7 @@ QUANT.DTM <- melt.data.table(data = fread(QUANT.CSV),
 # take a peak
 head(QUANT.DTM, n=3)
 
-# published data of piRNA and miRNA quantificaiton: PMID:30193099
+# published data of piRNA and miRNA quantification: PMID:30193099
 ZAM.PIMI.DT <- data.table("cell"=c("1_spermatocyte","2_spermatocyte","round_spermatid"),
                           "piRNA_count"=c(7800000,3900000,2500000),
                           "miRNA_count"=c(54000,26000,20000))
@@ -564,7 +756,7 @@ suppressMessages(
       * Filter the data
       * Count and calculate the summaries
       * Select data for plotting
-      * Plot the results
+      * Plot the results for various analyses
 
 ```{r Figure 3 & 4, index precursor genome, eval=TRUE, cache=TRUE, results=FALSE}
 # NOTE: Generate piRNA precursor index
@@ -802,8 +994,8 @@ ggplot() + theme_pubclean() +
                         colour = "sample"),
              shape = 16, size = 3, alpha = 0.5) +
   ## scales
-  scale_y_continuous(trans = "log10", limits = c(1,100)) + 
-  scale_x_continuous(breaks = seq(0,500,5)) +
+  scale_y_continuous(trans = "log10", limits = c(0.01,100)) + 
+  scale_x_continuous(breaks = seq(0,500,10)) +
   scale_colour_manual(values = c("plum3", "lightseagreen")) +
   scale_fill_manual(values = c("plum3", "lightseagreen")) +
   
@@ -811,7 +1003,7 @@ ggplot() + theme_pubclean() +
   annotation_logticks(sides = "l") +
   theme(aspect.ratio = 0.5, 
         axis.ticks.y = element_blank(),
-        axis.text = element_text(family = FAM, size = XYT, color = TCOL),
+        axis.text = element_text(family = FAM, size = XYT-5, color = TCOL),
         axis.title = element_text(family = FAM, size = XYT, colour = TCOL))
 ```
 
@@ -930,15 +1122,478 @@ annotateRankedBP(ANN.TAB.L = ANOT.DT.L,
                  Y.LIMS = c(-60,70))
 ```
 
+```{r Figure 3E, eval=TRUE, fig.align="center"}
+# NOTE: Figure 3A, Annotating transposable elements
 
+suppressPackageStartupMessages({
+  library("ggplot2"); library("ggbio"); library("ggpubr")})
+
+# load function
+source(paste0(FUN.DIR,"simpleGRfilter.R"))
+source(paste0(FUN.DIR,"simpleAnnotateTE.R"))
+
+# Use previously generated RMSK GR
+# RMSK.GR
+
+# Filter the data
+BIO.REP.U.S249 <- suppressMessages(
+  simpleGRFilter(GR = BIO.REP,
+                 RANGE.NAME = "biorep1", 
+                 NH.TAG = 1, 
+                 SIZE.RANGE = c(24,29)))
+
+## Order by abundance, calculate ppm and add order
+BSSPECIES = "Dmelanogaster"
+BIO.REP.U.S249.RANKED <- BIO.REP.U.S249[order(mcols(BIO.REP.U.S249)[["MULT"]], 
+                                              decreasing = TRUE)]
+mcols(BIO.REP.U.S249.RANKED)[["PPM"]] <- (mcols(BIO.REP.U.S249.RANKED)[["MULT"]] / 
+                                            sum(mcols(BIO.REP.U.S249.RANKED)[["MULT"]]) )*1000000
+mcols(BIO.REP.U.S249.RANKED)[["ORDER"]] <- seq(1,length(BIO.REP.U.S249.RANKED))
+
+
+## TOP 1000 IN RMSK
+TOP.IN.RMSK <- suppressMessages(
+  simpleAnnotateTE(GR = BIO.REP.U.S249.RANKED[1:1000], 
+                   RMSK.GR = RMSK.GR, 
+                   OVERLAP.TYPE = "within") )
+  
+TOP.IN.RMSK.FAM <- TOP.IN.RMSK[["FAMILY"]]
+TOP.IN.RMSK.FAM[["GROUP"]] = "TOP1K"
+TOP.IN.RMSK.FAM[["TYPE"]] = ifelse(TOP.IN.RMSK.FAM[["FAMILY"]] %in% "OTHER","Other","rmsk")
+
+# settings
+TCOL="black"; FAM="Helvetica"; XYT=12
+
+# plot
+plot.TE <- ggplot() + theme_pubclean() +
+  geom_bar(data = TOP.IN.RMSK.FAM, 
+           aes(x = GROUP, y = FREQ, fill = TYPE), stat = "identity")+
+  scale_y_continuous(breaks = seq(0,1,0.1)) + xlab("") +
+  scale_fill_manual(values = c("#DBEFBD","#A599B5")) +
+  theme(aspect.ratio = 7, legend.position = "right",
+        axis.text.x = element_text(family = FAM, size = XYT, color = TCOL),
+        axis.text.y = element_text(family = FAM, size = XYT, color = TCOL))
+
+
+## TOP 1000 in TE families
+TOP.IN.RMSK.FAM.AS <- TOP.IN.RMSK.FAM[FREQ > 0 & STRAND %in% "AS"]
+TOP.Other <- data.table(FAMILY="Other",STRAND="NA", COUNT=1000-sum(TOP.IN.RMSK.FAM.AS[["COUNT"]]), 
+                        FREQ=1-sum(TOP.IN.RMSK.FAM.AS[["FREQ"]]),GROUP="TOP1K",TYPE="rmsk")
+TOP.IN.RMSK.FAM.AS <- rbindlist(l = list(TOP.IN.RMSK.FAM.AS,TOP.Other))
+TOP.IN.RMSK.FAM.AS[["FAMILY"]] <- factor(TOP.IN.RMSK.FAM.AS[["FAMILY"]], 
+                                         levels = rev(TOP.IN.RMSK.FAM.AS[["FAMILY"]]))
+
+## plot
+plotTEFAM <- ggplot() + theme_pubclean() +
+  geom_bar(data = TOP.IN.RMSK.FAM.AS, 
+           aes(x = GROUP, y = FREQ, fill = FAMILY), stat = "identity")+
+  scale_y_continuous(breaks = seq(0,1,0.1)) +xlab("") +
+  scale_fill_manual(values = c("#DBEFBD","#E0E1E9","#E7CEE3","#E4B4C2","#FF99BD")) +
+  theme(aspect.ratio = 7, legend.position = "right",
+        axis.text.x = element_text(family = FAM, size = XYT, color = TCOL),
+        axis.text.y = element_text(family = FAM, size = XYT, color = TCOL))
+
+## ARRANGE AND PRINT
+arranged3Fplots <- ggarrange(plotlist = list(plot.TE,plotTEFAM), 
+                             ncol = 2)
+arranged3Fplots
+```
+
+```{r Figure 3F data, eval=FALSE, results=FALSE}
+## NOTE: Figure 3F, flamenco specific mapping
+
+# libraries
+library("BSgenome.Dmelanogaster.UCSC.dm6"); library("GenomicAlignments")
+library("GenomeInfoDb"); library("parallel"); library("dplyr");
+library("BSgenome"); library("data.table")
+
+# load functions
+source(paste0(FUN.DIR,"simpleAnnotateTE.R"))
+source(paste0(FUN.DIR,"rmskGTF2BED.R"))
+
+# Start with raw bam files
+# named vector of paths
+BAM.PATH.L <- c("rep1"="/Users/genzorp/Documents/GITHUB/piDiversity/data/bamFiles/FHIP/STAR/FH-Piwi-IP_1_1.Aligned.sortedByCoord.out.bam",
+                "rep2"="/Users/genzorp/Documents/GITHUB/piDiversity/data/bamFiles/FHIP/STAR/FH-Piwi-IP_1_2.Aligned.sortedByCoord.out.bam",
+                "rep3"="/Users/genzorp/Documents/GITHUB/piDiversity/data/bamFiles/FHIP/STAR/FH-Piwi-IP_1_3.Aligned.sortedByCoord.out.bam")
+
+# quick load settings
+TAGS = c("NH","NM","MD"); WHAT = c("flag"); SIMPLE.CIGAR = TRUE; BSSPECIES = "Dmelanogaster"
+PARAM = Rsamtools::ScanBamParam(flag = Rsamtools::scanBamFlag(isUnmappedQuery = FALSE),
+                                tag = TAGS, simpleCigar = SIMPLE.CIGAR, what = WHAT)
+ORIGINAL.FLAM <- GRanges(seqnames = "chrX", ranges=IRanges(start= 21631891, end = 21790731), strand = "+")
+
+# Load and filter the data
+# - only perfectly mapping to flam, 24-29-nt long
+OFLAM.ALL.GRL <- mclapply(names(BAM.PATH.L),mc.cores = 3, function(s){
+  message("Loading GA for ...")
+  message(paste0("\t",s))
+  GA <- GenomicAlignments::readGAlignments(file = BAM.PATH.L[[s]], 
+                                           use.names = TRUE, param = PARAM)
+  message("\tfiltering")
+  GA.FLAM <- subsetByOverlaps(x = GA, ranges = ORIGINAL.FLAM, type = "any")
+  seqlevels(x = GA.FLAM, pruning.mode="coarse") <- c("chrX")
+  GA.FLAM <- GA.FLAM[mcols(GA.FLAM)[["NM"]] %in% 0]
+  GA.FLAM <- GA.FLAM[width(GA.FLAM) %in% seq(24,29)]
+
+  message("\tformatting")
+  FLAM.GA.GR <- GenomicRanges::granges(GA.FLAM, use.names = TRUE, use.mcols = TRUE)
+  mcols(FLAM.GA.GR)[["MULT"]] <- dplyr::nth(tstrsplit(
+    dplyr::nth(tstrsplit(names(FLAM.GA.GR), split = "-"), -1), split = "M"),-1)
+  mcols(FLAM.GA.GR)[["SEQ"]] <- BSgenome::getSeq(eval(parse(text = BSSPECIES)), FLAM.GA.GR)
+  
+  message("\tcleaning")
+  mcols(FLAM.GA.GR)[["flag"]] <- NULL
+  mcols(FLAM.GA.GR)[["MD"]] <- NULL
+  mcols(FLAM.GA.GR)[["NM"]] <- NULL
+  return(FLAM.GA.GR) })
+
+## combine into a single GR
+OFLAM.ALL.GR <- do.call("c",OFLAM.ALL.GRL)
+rm(OFLAM.ALL.GRL)
+
+# save image
+save.image(file = "/Users/genzorp/Documents/GITHUB/piDiversity/sessions/revisions/flamOnly_biorep_filtered.RData")
+```
+
+```{r Figure 3F plots, eval=FALSE, fig.align="center"}
+## NOTE Figure 3F plot A
+
+# libraries
+library("ggplot2"); library("ggbio"); library("ggpubr");
+library("BSgenome"); library("BSgenome.Dmelanogaster.UCSC.dm6")
+
+## load the data
+load("/Users/genzorp/Documents/GITHUB/piDiversity/sessions/revisions/flamOnly_biorep_filtered.RData")
+
+# Sort and prepare biological replicate
+BSSPECIES="Dmelanogaster"
+GR.B <- BIO.REP[order(mcols(BIO.REP)[["MULT"]], decreasing = TRUE)]
+mcols(GR.B)[["PPM"]] <- (mcols(GR.B)[["MULT"]] / sum(mcols(GR.B)[["MULT"]]) )*1000000
+mcols(GR.B)[["ORDER"]] <- seq(1,length(GR.B))
+mcols(GR.B)[["SEQ"]] <- BSgenome::getSeq(eval(parse(text = BSSPECIES)), GR.B)
+
+# Convert GR to table and add info
+OFLAM.ALL.DT <- as.data.table(OFLAM.ALL.GR)
+mcols(OFLAM.ALL.GR)[["MAPPING"]] <- ifelse(mcols(OFLAM.ALL.GR)[["NH"]] %in% 1, "1","2")
+mcols(OFLAM.ALL.GR)[["FIRST"]] <- ifelse(substr(mcols(OFLAM.ALL.GR)[["SEQ"]], 
+                                                start = 1, stop = 1) %in% "T", "1","2")
+OFLAM.ALL.DT[["readNames"]] <- names(OFLAM.ALL.GR)
+
+## add ppm to the sequences
+B1000.INFLAM.GR <- OFLAM.ALL.GR[mcols(OFLAM.ALL.GR)[["SEQ"]] %in% mcols(GR.B[1:1000])[["SEQ"]]]
+B1000.INFLAM.DT <- as.data.table(B1000.INFLAM.GR)
+B1000.DT <- as.data.table(GR.B[1:1000])
+B1000.INFLAM.DT <-setDT(join_all(dfs = list(B1000.INFLAM.DT, B1000.DT[,c("SEQ","ORDER","PPM")]), 
+                                 by = "SEQ", type = "left"))
+B1000.INFLAM.GR <- makeGRangesFromDataFrame(df = B1000.INFLAM.DT, keep.extra.columns = TRUE)
+
+## extract only unique sequences
+B1000.INFLAM.U.GR <- unique(B1000.INFLAM.GR)
+B1000.INFLAM.U.DT <- as.data.table(B1000.INFLAM.U.GR)
+B1000.INFLAM.U.DT[["FIRST"]] <- factor(B1000.INFLAM.U.DT[["FIRST"]], levels = c(2,1))
+
+# flamenco start and end
+FST = 21630000; FEN = 21800000
+
+## plot
+ggplot() + theme_pubclean() +
+  geom_point(data = B1000.INFLAM.U.DT[FIRST %in% 1], aes(x = start, y = PPM),
+             shape = 16, size = 5, alpha = 0.5, color = "#CD1F13") +
+  geom_point(data = B1000.INFLAM.U.DT[FIRST %in% 2], aes(x = start, y = PPM),
+             shape = 16, size = 5, alpha = 0.5, color = "black") +
+  scale_y_continuous(trans = "log10", limits = c(10,1000)) +
+  scale_x_continuous(limits = c(FST, FEN), breaks = seq(FST,FEN,50000)) +
+  ggtitle(paste0("flamenco region\n","chrX:",FST,"-",FEN)) +
+  annotation_logticks(sides = "l") + 
+  xlab("genome position") +
+  ylab("Seq. abundance (ppm)\nTop 1000 most abundant piRNAs") +
+  annotate(geom = "text", x = FST, y = 12, hjust = 0,
+           label="RED= 1U piRNAs, BLACK= non-1U piRNAs") +
+  theme(aspect.ratio = 0.4, 
+        axis.ticks.y = element_blank())
+```
+
+```{r Figure 3F - mappability, eval=FALSE}
+# NOTE: Figure 3F: Mappability
+
+# select dataset
+AllMap <- GR.B
+UnqMap <- AllMap[AllMap$NH == 1]
+
+# select cluster, (original flam)
+TheCluster <- GRanges(seqnames = "chrX", ranges=IRanges(start= 21631891, end = 21790731), strand = "+")
+mcols(TheCluster)[["WIDTH"]] <- end(TheCluster)-start(TheCluster)
+
+#make shortcut objects
+ReadsInClust <- IRanges::subsetByOverlaps(UnqMap, TheCluster, type = "within")
+mcols(TheCluster)[["DENSITY"]] <- sum(as.data.table(ReadsInClust)$MULT)/mcols(TheCluster)[["WIDTH"]]
+ReadsInClust <- IRanges::subsetByOverlaps(UnqMap, TheCluster, type = "within")
+RangeVect <- c(as.data.table(TheCluster)$start:as.data.table(TheCluster)$end)
+TheChromo <- as.vector(as.data.table(TheCluster)$seqnames)
+TheStrand <- as.vector(as.data.table(TheCluster)$strand)
+RefGen <- BSgenome::getBSgenome("BSgenome.Dmelanogaster.UCSC.dm6")
+
+#size distribution
+ReadDistrib <- as.data.table(GR.B)[,sum(MULT), by=width]
+ReadDistrib[,V1 := V1/sum(ReadDistrib$V1)]
+
+# Create dm6 genome index using Rsubread
+# - refer to manual for instructions
+
+# create all possible piRNAs
+NtoT <- lapply(c(18:32), function(a){
+  vect <- split(RangeVect, ceiling(seq_along(RangeVect)/a))
+  vect <- Filter(function(z){length(z) == a},vect)
+  vectDT <- data.table(start = unlist(lapply(vect, min)), end = unlist(lapply(vect, max)))
+  manyvect <- lapply(c(0:(a-1)), function(b){
+    return(data.table(start = (vectDT$start+b), end = (vectDT$end+b)))
+  })
+  vectF <- bind_rows(manyvect)
+  vectF <- vectF[end <= max(RangeVect)]
+  GR1 <- GRanges(seqnames = TheChromo, ranges=IRanges(start=vectF$start, end = vectF$end),
+                 strand = TheStrand) 
+  return(as.data.table(GR1)) })
+
+NtoT <- bind_rows(NtoT)
+NtoT <- GRanges(seqnames = NtoT$seqnames, ranges=IRanges(start=NtoT$start, end = NtoT$end),
+                strand = NtoT$strand)
+names(NtoT) <- paste0("Num_",c(1:length(NtoT)))
+
+# extract sequences for each
+NtoT_seq <- BSgenome::getSeq(eval(parse(text = BSSPECIES)), NtoT)
+
+# write to file
+# writeFasta(NtoT_seq, file="/YourDirectories/fastaFiles/files/oflam_all.fa")
 #
-# ***bash*** Scripts
-#
+
+# align to genome using Rsubread
+# align(index="/YourDirectories/Dm6",
+#       readfile1 =  "/YourDirectories/oflam_all.fa", 
+#       output_file = "/YourDirectories/Rsubread/aligned/oflam_all.bam",
+#       maxMismatches = 0, nthreads = 6, sortReadsByCoordinates = TRUE)
+
+# load and identify mult-mapping reads
+GA <- readGAlignments(file = "/YourDirectories/Rsubread/aligned/oflam_all.bam",
+                      use.names = TRUE, param = ScanBamParam(tag = c("NH"), what = c("flag")))
+GA.DT <- as.data.table(GA)
+GA.DT$Name <- names(GA)
+mcols(NtoT)[["MULTI"]] <- 1
+mcols(NtoT[names(NtoT) %in% GA.DT[flag == 0][seqnames == "chrX"]
+           [start %in% RangeVect][end %in% RangeVect][,Name]])[["MULTI"]] <- 0
+
+# scale 'un-mappability' per length
+Hmmm <- lapply(c(18:32),function(a){
+  
+  if(a %in% width(NtoT[NtoT$MULTI == 1])){
+    GR <- NtoT[width(NtoT) == a & NtoT$MULTI == 1]
+    GR.DT <- as.data.table(GR)
+    GR.DT$Names <- names(GR)
+    min(GR.DT$start)
+    max(GR.DT$end)
+    covDT <- as.data.table(coverage(GR))[!1:(min(RangeVect)-1),3]
+    covDT[,value := (value/a)*ReadDistrib[width == a][,V1]]
+    covDT <- rbind(covDT, data.table(
+      value = rep(0, times=((max(RangeVect)-min(RangeVect)+1)-nrow(covDT)))))
+    return(covDT)
+  }
+  else{return(data.table(value = rep(0,(max(RangeVect)-min(RangeVect)+1))))} })
+
+# sum up scaled un-mappabilities by length
+Hmmm <- bind_cols(Hmmm)
+colnames(Hmmm) <- paste0(c(18:32),"nt")
+Hmmm[,Coverage := matrixStats::rowSums2(as.matrix(Hmmm))]
+Hmmm[,Position := c(1:nrow(Hmmm))]
+
+# get coverage and make final table
+RIC.DT <- as.data.table(ReadsInClust)
+RIC.DT <- RIC.DT[rep(seq.int(1,nrow(RIC.DT)), RIC.DT$MULT)]
+RIC <- GRanges(seqnames = RIC.DT$seqnames, 
+               ranges = IRanges(start=RIC.DT$start, end = RIC.DT$end), 
+               strand = RIC.DT$strand)
+
+as.data.table(coverage(RIC)[[]])  [!1:(min(RangeVect)-1)]
+
+FinalCov <- as.data.table(coverage(RIC)[[6]])[!1:(min(RangeVect)-1)]
+FinalCov$Position <- c(start(TheCluster):max(end(RIC)) )-(start(TheCluster)-1)
+FinalCov <- merge(FinalCov,Hmmm[,c("Coverage","Position")],  all.y = T, by="Position")
+FinalCov$Position <- c(start(TheCluster):end(TheCluster))
+colnames(FinalCov) <- c("POSITION", "COVERAGE", "MAP")
+
+# take moving average (we used 2001)
+library(accelerometry)
+FinalCov$MAP.TR <- movingaves(c(rep(0,1000), FinalCov$MAP, rep(0,1000)), 2001)
+FinalCov$Cov.TR <- movingaves(c(rep(0,1000), FinalCov$COVERAGE, rep(0,1000)), 2001)
+FinalCov$MultiCovTR <- movingaves(c(rep(0,1000), FinalCov$MultiCov, rep(0,1000)), 2001)
+
+TRANS = "log10" 
+YLIMS.1 = c(10,1000)
+
+ggplot() + 
+  theme_bw() + 
+  geom_segment(data = FinalCov, aes(x=POSITION, xend=POSITION,
+                                    y= YLIMS.1[1] ,yend = YLIMS.1[2], 
+                                    color = MAP.TR)) +
+  ## SCALES
+  scale_color_gradient(low = "white",high = "grey80") +
+  scale_y_continuous(trans = TRANS, limits= YLIMS.1) +
+  scale_x_continuous(breaks = seq(21631000,21800000,10000)) +
+  annotation_logticks(sides = "l") +
+  
+  ggtitle(paste0("ORIGINAL FLAM  ", "chrX:",
+                 min(FinalCov[["POSITION"]]), " - ", 
+                 max(FinalCov[["POSITION"]]))) +
+  xlab("Genomic position") + ylab("Seq. abundance (ppm)") +
+  
+  ## THEME
+  theme(aspect.ratio = 0.3, 
+        legend.position = "bottom",
+        panel.border = element_blank(), 
+        panel.grid = element_blank())
+```
 
 
+####  
+__Additional Figures__ 
+* ***Analysis of the piRNA sensors***  
 
-```{r Counting Callibrators, eval = FALSE}
-# NOTE: Bash script used for counting calibrator sequences in the fastq.gz files
+```{r Figure Sensors - prepare data, eval=FALSE}
+# NOTE: piRNA Sensors - prepare data
+
+# Sensor information
+# Flam_1st: chrX:21,635,292-21,635,521:+ (230bp)
+# Flam_2nd: chrX:21,635,062-21,635,291:+ (230bp)
+# Flam_100bp: chrX:21,635,292-21,635,391:+ (100bp)
+# Flam_460bp: chrX:21,635,062-21,635,521:+ (460bp)
+# CG17514: chr3L:27,970,220-27,970,449:- (230bp)
+# Tj: chr2L:19,466,747-19,466,976:+ (230bp)
+# Path:  chr3L:9,495,281-9,495,510:- (230bp)
+# CycB3:  chr3R:24,868,353-24,868,582:-  (230bp)
+# CycB3_5:  chr3R:24,870,599-24,870,828:- (230bp)
+
+# Genomic Ranges components
+CHR = c("chrX","chrX","chrX","chrX","chr3L","chr2L","chr3L","chr3R","chr3R")
+START = c(21635292,21635062,21635292,21635062,27970220,19466747,9495281,24868353,24870599)
+END = c(21635521,21635291,21635391,21635521,27970449,19466976,9495510,24868582,24870828)
+STRAND = c("+","+","+","+","-","+","-","-","-")
+NAME = c("Flam230a","Flam230b","Flam100","Flam460","CG17514","Tj","Path","CycB3","CycB35")
+SI <- keepStandardChromosomes(seqinfo(eval(parse(text = "Dmelanogaster"))))
+
+# Genomic ranges
+SEN.GR <- GRanges(seqnames = CHR, 
+                  ranges = IRanges(start = START, end = END), 
+                  strand = STRAND, 
+                  seqinfo = SI)
+mcols(SEN.GR)[["name"]] <- paste0(CHR,":",START,"-",END,":",STRAND,":",NAME)
+SEN.GR
+
+# Get sequence
+SEN.SEQ <- getSeq(eval(parse(text = "Dmelanogaster")), SEN.GR)
+names(SEN.SEQ) <- mcols(SEN.GR)[["name"]]
+
+# Write individual fasta files
+lapply(names(SEN.SEQ), function(n){
+  A.SEQ <- SEN.SEQ[n]
+  N <- gsub(":","_",n)
+  writeFasta(object = A.SEQ, file = paste0(FA.DIR,N,".fa")) })
+
+## In the bash on the server
+
+##
+##  1. Make genomes from each fasta for your aligner
+##  2. Align piRNAs to each sensor and 
+##  3. Proced with bam files
+##
+
+# find the new bam files
+# BAM.PATH = "/Users/genzorp/Documents/GITHUB/piDiversity/Sensors/stranded_STAR/"
+EXTENTION = ".Aligned.sortedByCoord.out.bam$"
+FILE.NAMES = grep(EXTENTION, list.files(BAM.PATH), value = TRUE)
+SAMPLE.NAMES = gsub(EXTENTION, "", FILE.NAMES)
+SENSOR.NAMES <- nth(tstrsplit(SAMPLE.NAMES, split = "_"),4)
+BAM.FILE.PATHS <- paste0(BAM.PATH,FILE.NAMES)
+names(BAM.FILE.PATHS) <- SENSOR.NAMES
+BAM.FILE.PATHS
+
+# Load the bam files
+source(paste0(FUN.DIR,"filterBam.R"))
+SENSOR.BAM.L <- lapply(names(BAM.FILE.PATHS), function(s){
+  
+  message(paste0("Loading: ",s))
+  SGR <- suppressMessages(filterBam(BAMFILE = BAM.FILE.PATHS[[s]], 
+                   BSSPECIES = "Dmelanogaster",
+                   PERFECT.MATCH.ONLY = TRUE,                    
+                   READ.SIZE.RANGE = c(24,29), 
+                   STANDARD.CONTIGS.ONLY = FALSE,
+                   GET.ORIGINAL.SEQUENCE = TRUE, 
+                   SPLIT.NAME.BY = "_"))
+  
+  ## Filter by actual strand of piRNA
+  mcols(SGR)[["rs"]] <- nth(tstrsplit(names(SGR),split = "_"),4)
+  mcols(SGR)[["gs"]] <- nth(tstrsplit(seqnames(SGR),split = ":"),3)
+  message(length(SGR))
+  SGR <- SGR[mcols(SGR)[["rs"]] == mcols(SGR)[["gs"]],]
+  message(length(SGR))
+
+  ## Return
+  return(SGR)})
+names(SENSOR.BAM.L) <- names(BAM.FILE.PATHS)
+
+# save image
+save.image(file = "/Users/genzorp/Documents/GITHUB/piDiversity/sessions/revisions/sensor_mapped.RData")
+```
+
+```{r Figure Sensors - analyze data, eval=TRUE, cache=TRUE, fig.align="center", results=FALSE}
+# NOTE: piRNA SENSORS - analyze data
+
+# libraries
+suppressPackageStartupMessages({
+  library(ggfortify); library(scales); 
+  library(ggbio); library(data.table)})
+
+# load prepared data
+load(file = "/Users/genzorp/Documents/GITHUB/LIVE/piRNA_Diversity/exampleRData/sensor_mapped.RData")
+
+# Expand mapped data into reads
+READS.BAM.L <- suppressWarnings(suppressMessages(
+  lapply(names(SENSOR.BAM.L), function(s){
+    message(paste0("Expanding to reads: ",s))
+    A.GR <- SENSOR.BAM.L[[s]]
+    DT.GR <- as.data.table(A.GR, keep.rownames = "aseq")
+    setkey(DT.GR, cols = "aseq")
+    DT.LONG <- DT.GR[rep(aseq, MULT)]
+    R.GR <- makeGRangesFromDataFrame(DT.LONG, keep.extra.columns = TRUE)
+    return(R.GR)}) ))
+names(READS.BAM.L) <- names(SENSOR.BAM.L)
+
+# plot piRNA read coverage
+Flam100.COV <- ggbio::autoplot(READS.BAM.L[["Flam100"]], stat = "coverage", main="Flam100")
+Flam100.COV <- Flam100.COV + theme_pubclean() + 
+  scale_y_continuous(labels = scientific_format()) +
+  theme(aspect.ratio = 0.5)
+
+# plot mapped piRNA sequences
+Flam100.SEQ <-  ggbio::autoplot(object = SENSOR.BAM.L[["Flam100"]], aes(fill = strand)) 
+Flam100.SEQ <- Flam100.SEQ + scale_y_reverse() + theme_pubclean() + 
+  ylab("# aligned sequences") +
+  theme(aspect.ratio = 0.5, legend.position = "none") 
+
+# Arrange
+SENSOR.MAPPING.PLOT <- ggarrange(plotlist = list(Flam100.COV@ggplot, 
+                                                 Flam100.SEQ@ggplot), nrow = 2)
+
+SENSOR.MAPPING.PLOT
+```
+
+####
+*__bash__* Scripts  
+
+These scripts were used to count the total number of calibrators in publicly available small RNA libraries in order to estimate correction factor (kcorr) [**PMID:30193099**](https://pubmed.ncbi.nlm.nih.gov/30193099), and for quantification of miRNA and piRNA populations in data generated in this paper. 
+
+```{r Counting Callibrators, eval=FALSE}
+# NOTE: Bash script used to count calibrator sequences in public small RNA libraries
+#       for calculation of correction factor (kcorr)
+#       - mouse male germ cell data from PMID: 30193099
 
 #!/bin/bash
 
@@ -964,4 +1619,115 @@ rm "${name}"_Calibrator_seq.txt
 rm "${name}"_Calibrator_Count.txt
 
 echo "Done"
+```
+
+```{r Counting Callibrators - pipeline, eval=FALSE}
+# NOTE: Bash script used to count calibrator sequences in small RNA libraries
+#       generated for this paper in order to quantify piRNA and miRNA populations. 
+
+#!/bin/bash
+module load cutadapt
+module load samtools
+module load bowtie/1.2.3 
+module load fastqc
+
+# Provide fastq file as first argument to this bash script
+input=$1
+name=$(basename ${input%.fastq})
+mkdir "${name}"_Analysis
+
+# Remove 3-prime adapter sequence, keep > 29-nt
+echo "removing adaptor"
+cutadapt  -a TGACTGTGGAATTCTCGGGTGCCAAGG \
+          --overlap 10 \
+          -m 29 \
+          --untrimmed-output "${name}"_Untrimmed.fastq \
+          -o "${name}"_trimmed.fastq "${name}".fastq \
+          > "${name}"_Remove3Adaptor_Report.txt
+
+mv "${name}"_Untrimmed.fastq "${name}"_Analysis
+mv "${name}"_trimmed.fastq "${name}"_Analysis
+mv "${name}"_Remove3Adaptor_Report.txt "${name}"_Analysis
+cd "${name}"_Analysis
+
+# Collapse by sequence / remove PCR duplicates
+echo "removing PCR duplicates"
+cat "${name}"_trimmed.fastq | awk 'NR%4==2' | sort | uniq -c | \
+    awk '{OFS= "\n"; print ">"NR"-"$1,$2}' > "${name}"_trimmed_collapsed.fasta 
+
+# Remove UMIs (8N at 5`end & 2N at 3`end)
+echo "removing UMIs"
+cutadapt  -u 8 -u -2 \
+          -o "${name}"_trimmed_collapsed_UMIremoved.fasta \
+          "${name}"_trimmed_collapsed.fasta > \
+          "${name}"_RemoveUMI_Report.txt
+
+# Remove structural RNAs
+echo "Align reads to structural RNAs"
+bowtie  /YourStructuralIndexFolder/dm6_strRNAs_Bowtie1index \
+        -v 1 -m 100 -p 12 --best --strata \
+        --un NonStructural_"${name}"_trimmed_collapsed_UMIremoved.fasta \
+        -f "${name}"_trimmed_collapsed_UMIremoved.fasta \
+        -S 2> "${name}"_AlignToStractural_Report.txt | \
+        samtools view -Sh > Structural_"${name}"_trimmed_collapsed_UMIremoved.sam 
+
+# Find the numbers of calibrators looking for their 25 first nt
+echo "Counting the Calibrators"
+printf  "Calibrator\n1_CALIBRATORSEQUENCEONE\n2_CALIBRATORSEQUENCETWO" > \
+        "${name}"_Calibrator_seq.txt
+echo Counts > "${name}"_Calibrator_Count.txt
+
+grep \
+  'CALIBRATORSEQUENCEONE' NonStructural_"${name}"_trimmed_collapsed_UMIremoved.fasta | \
+  wc >> "${name}"_Calibrator_Count.txt
+grep \
+  'CALIBRATORSEQUENCETWO' NonStructural_"${name}"_trimmed_collapsed_UMIremoved.fasta | \
+  wc >> "${name}"_Calibrator_Count.txt
+
+paste "${name}"_Calibrator_seq.txt "${name}"_Calibrator_Count.txt > \
+      "${name}"_Calibrator_Counts.txt
+
+rm "${name}"_Calibrator_seq.txt
+rm "${name}"_Calibrator_Count.txt
+
+# Remove calibrators with cutadapt - use a first 25-nt of each calibrator
+echo "Removing the Calibrators"
+cutadapt  \
+  -g file:/FolderWithCalibratorFasta/Calibrators_first25nt.fasta \
+  --overlap 25 -m 20 -e 0 \
+  -o NonStructural_"${name}"_trimmed_collapsed_UMI_noCalibrators.fasta \
+  NonStructural_"${name}"_trimmed_collapsed_UMIremoved.fasta > \
+  "${name}"_RemoveCalibrators_Report.txt
+
+# Identify miRNAs
+echo "Mapping against miRNAs"
+bowtie \
+  /YourMiRNAIndexFolder/dm_mature_miRNAs_Bowtie1index \
+  -v 1 -m 100 -p 12 --best --strata \
+  --al NonStructural_"${name}"_trimmed_collapsed_UMI_noCalibrators_miRNAs.fasta \
+  --un NonStructural_"${name}"_trimmed_collapsed_UMI_noCalibrators_miRNAout.fasta \
+  -f NonStructural_"${name}"_trimmed_collapsed_UMI_noCalibrators.fasta \
+  -S 2> "${name}"_AlignTomiRNA_Report.txt | \
+  samtools view -Sh > \
+  Mapped_NonStructural_"${name}"_trimmed_collapsed_UMI_noCalibrators_miR_Aligned.sam
+
+# Filter to keep 24-29-nt long reads only
+echo "Selecting for 24-29nt long reads" 
+cutadapt  \
+  -m 24 -M 29 \
+  -o NonStructural_"${name}"_trimmed_collapsed_UMI_noCalibrators_miRNAout_24to29.fasta \
+  NonStructural_"${name}"_trimmed_collapsed_UMI_noCalibrators_miRNAout.fasta > \
+  "${name}"_keep24to29nt_Report.txt
+
+# Map to Dm6 genome 
+echo "Aligning to Dm6 genome"
+bowtie  \
+  /YourGenomeIndexFolder/dm6_Bowtie1index \
+  -v 1 -m 100 -p 12 --best --strata \
+  --al Mapped_NonStructural_"${name}"_trimmed_collapsed_UMI_noCalibrators_miRNAout_24to29.fasta \
+  --un Unmapped_NonStructural_"${name}"_trimmed_collapsed_UMI_noCalibrators_miRNAout_24to29.fasta \
+  -f NonStructural_"${name}"_trimmed_collapsed_UMI_noCalibrators_miRNAout_24to29.fasta \
+  -S 2> "${name}"_AlignToDm6_Report.txt | \
+  samtools view -Sh > \
+  NonStructural_"${name}"_trimmed_collapsed_UMI_noCalibrators_miRNAout_24to29_Dm6Aligned.sam
 ```
