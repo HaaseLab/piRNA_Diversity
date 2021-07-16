@@ -10,7 +10,7 @@ __Authors__
 *Amirhossein Manzourolajdad, Celine Marlin Andrews, Alexandra R. Elchert, Constantinos Stathopoulos, Astrid D. Haase*  
   
   
-This vignette describes the computational materials & methods associated with this manuscript. Please visit [**HaaseLab/piRNA_Diversity github repository**](https://github.com/HaaseLab/piRNA_Diversity) to download functions for the script. Please reffer to the GEO dataset [**GSE156058**](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE156058) associated with this study for adapter sequences and raw data. 
+This vignette describes the computational materials & methods associated with this manuscript. Please visit [**HaaseLab/piRNA_Diversity github repository**](https://github.com/HaaseLab/piRNA_Diversity) to download functions for the script. Please reffer to the GEO dataset [**GSE156058**](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE156058) associated with this study for adapter sequences and raw data. The analysis in this vignette was not performed with full data sets, but only subset of the data to demonstrate the materials and methods.
 
 ####
 __About small RNA Libraries__  
@@ -36,4 +36,13 @@ A. DATA PREPARATION
   3. Remove structural contaminants and align to the genome
   4. Load and process files in R.  
 
-B. FIGURE-RELATED SCRIPTS
+B. FIGURE-RELATED SCRIPTS. 
+
+  * Figure 1
+  * Figure 2
+  * Figure S2 & 3B
+  * Figure 3 & 4
+  * Additinoal figures
+  
+C. *__bash__* Scripts  
+
