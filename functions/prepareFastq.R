@@ -69,7 +69,7 @@ prepareFastq <- function(
     LENGTH.NOUMI = length(NOUMI)
   } else {
     message("\tNOT removing UMI sequences")
-    NOUMI <- NOPCRDUP; LENGTH.NOUMI = NA}
+    NOUMI <- NOPCRDUPS; LENGTH.NOUMI = NA}
   
   if(isTRUE(FILTER.BY.SIZE)){
     message("\tremoving reads outside of SIZE.RANGE")

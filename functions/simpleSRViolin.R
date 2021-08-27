@@ -9,7 +9,7 @@ simpleSRViolin <- function(
                               SAMPLE.ORDER = names(GRL),
                               SIZE.RANGE = c(18,50), 
                               NH.TAG = NULL,
-                              TOTAL.SAMPLE="Total",
+                              TOTAL.SAMPLE=NULL,
                               
                               ## OUTPUT
                               ADD.TABLE = TRUE,
@@ -28,6 +28,7 @@ simpleSRViolin <- function(
   
   ## AUTHOR: Pavol Genzor & Daniel Stoyko
   ## Use: Calculate and plot steps plot
+  ## 08.27.21; Version 7; added request for TOTAL.SAMPLE
   ## 06.28.21; Version 6; fixed and refined
 
   ## LIBRARIES
@@ -43,6 +44,7 @@ simpleSRViolin <- function(
   if(is.null(SOURCE.DIR)) stop("Please provide a SOURCE.DIR with functions !")
   if(!"MULT" %in% colnames(mcols(GRL[[1]]))) stop("GRL needs to have MULT column !")
   if(!"NH" %in% colnames(mcols(GRL[[1]]))) stop("GRL needs to have NH column !")
+  if(is.null(TOTAL.SAMPLE)) stop("Please provide name of the TOTAL.SAMPLE !")
   
   ## FUNCTION
   source(paste0(SOURCE.DIR,"simpleGRFilter.R"))
